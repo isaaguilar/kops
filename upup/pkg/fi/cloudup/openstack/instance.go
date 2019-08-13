@@ -17,6 +17,7 @@ limitations under the License.
 package openstack
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
@@ -54,6 +55,14 @@ func (c *openstackCloud) CreateInstance(opt servers.CreateOptsBuilder) (*servers
 func (c *openstackCloud) DeleteInstance(i *cloudinstances.CloudInstanceGroupMember) error {
 	klog.Warning("This does not work without running kops update cluster --yes in another terminal")
 	return c.DeleteInstanceWithID(i.ID)
+}
+
+func (c openstackCloud) DetachInstance(i *cloudinstances.CloudInstanceGroupMember) error {
+	return errors.New("DetachInstance not implemented on OpenStack")
+}
+
+func (c openstackCloud) DeleteDetachedInstance(i *cloudinstances.CloudInstanceGroupMember) error {
+	return errors.New("DeleteDetachedInstance not implemented on OpenStack")
 }
 
 func (c *openstackCloud) DeleteInstanceWithID(instanceID string) error {
