@@ -65,8 +65,17 @@ func Test_ValidateNodesNotEnough(t *testing.T) {
 				},
 			},
 		},
+		HumanName: "saywhat!",
 	}
-
+	for grp := range groups {
+		fmt.Printf("GROUP: %v\n", groups[grp].HumanName)
+		for _, rdy := range groups[grp].Ready {
+			fmt.Printf("READY: %v\n", rdy.ID)
+		}
+		for _, nu := range groups[grp].NeedUpdate {
+			fmt.Printf("NEEDUPDATE: %v\n", nu.ID)
+		}
+	}
 	{
 		v := &ValidationCluster{}
 		groups["node-1"].MinSize = 3
@@ -77,6 +86,7 @@ func Test_ValidateNodesNotEnough(t *testing.T) {
 		}
 	}
 
+	fmt.Printf("groups: %v\n", groups["node-1"].MinSize)
 	{
 		groups["node-1"].MinSize = 2
 		v := &ValidationCluster{}
@@ -87,6 +97,7 @@ func Test_ValidateNodesNotEnough(t *testing.T) {
 		}
 	}
 
+	fmt.Printf("groups: %v\n", groups["node-1"].MinSize)
 	{
 		groups["node-1"].NeedUpdate[0].Node.Status.Conditions[0].Status = v1.ConditionTrue
 		v := &ValidationCluster{}
