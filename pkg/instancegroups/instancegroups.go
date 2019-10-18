@@ -506,33 +506,57 @@ func (r *RollingUpdateInstanceGroup) DeleteDetachedInstance(u *cloudinstances.Cl
 
 // CordonNode cordon or uncordeon a k8s node. If isCordon=false uncordon node
 func (r *RollingUpdateInstanceGroup) CordonNode(u *cloudinstances.CloudInstanceGroupMember, rollingUpdateData *RollingUpdateCluster, isCordon bool) error {
-	if rollingUpdateData.ClientGetter == nil {
-		return fmt.Errorf("ClientGetter not set")
+	// if rollingUpdateData.ClientGetter == nil {
+	// 	return fmt.Errorf("ClientGetter not set")
+	// }
+	if rollingUpdateData.K8sClient == nil {
+		return fmt.Errorf("K8sClient not set")
+	}
+
+	if u.Node == nil {
+		return fmt.Errorf("node not set")
 	}
 
 	if u.Node.Name == "" {
 		return fmt.Errorf("node name not set")
 	}
-	f := cmdutil.NewFactory(rollingUpdateData.ClientGetter)
+	// f := cmdutil.NewFactory(rollingUpdateData.ClientGetter)
 
-	streams := genericclioptions.IOStreams{
-		Out:    os.Stdout,
-		ErrOut: os.Stderr,
+	// streams := genericclioptions.IOStreams{
+	// 	Out:    os.Stdout,
+	// 	ErrOut: os.Stderr,
+	// }
+	helper := &drain.Helper{
+		Client:              rollingUpdateData.K8sClient,
+		Force:               true,
+		GracePeriodSeconds:  -1,
+		IgnoreAllDaemonSets: true,
+		Out:                 os.Stdout,
+		ErrOut:              os.Stderr,
+
+		// Other options we might want to set:
+		// Timeout?
+		// DeleteLocalData?
 	}
 
-	cordon := cmddrain.NewCmdCordon(f, streams)
-	args := []string{u.Node.Name}
-	options := cmddrain.NewDrainOptions(f, streams)
+	// cordon := cmddrain.NewCmdCordon(f, streams)
+	// args := []string{u.Node.Name}
+	// options := cmddrain.NewDrainOptions(f, streams)
 
-	err := options.Complete(f, cordon, args)
-	if err != nil {
-		return fmt.Errorf("error setting up cordon: %v", err)
+	// err := options.Complete(f, cordon, args)
+	// if err != nil {
+	// 	return fmt.Errorf("error setting up cordon: %v", err)
+	// }
+
+	// err = options.RunCordonOrUncordon(isCordon)
+	// if err != nil {
+	// 	return fmt.Errorf("error cordoning node node: %v", err)
+	// }
+
+	if err := drain.RunCordonOrUncordon(helper, u.Node, true); err != nil {
+		return fmt.Errorf("error cordoning node: %v", err)
 	}
 
-	err = options.RunCordonOrUncordon(isCordon)
-	if err != nil {
-		return fmt.Errorf("error cordoning node node: %v", err)
-	}
 	return nil
 }
 
